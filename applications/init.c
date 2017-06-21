@@ -50,7 +50,7 @@ u8 All_Init()
 	//Usart2_Init(256000);
 
 	Usart1_Init(115200);
-	
+		Usart2_Init(115200);
 	//TIM_INIT();
 	
 	Para_Init();							//参数初始化
@@ -60,7 +60,7 @@ u8 All_Init()
 	Ultrasonic_Init();   			//超声波初始化
 	
 	ak8975_ok = !(ANO_AK8975_Run());  //电子罗盘
-		Usart2_Init(115200);
+	
 //	if( !mpu6050_ok )
 //	{
 //		LED_MPU_Err();
