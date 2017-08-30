@@ -42,7 +42,7 @@ typedef union
 		float Gyro_Temperature;
 	}Offset;
 }sensor_setup_t; //__attribute__((packed)) 
-
+extern u8 ParaSavedFlag;
 typedef  struct{
 pid_t roll;
 pid_t pitch;	

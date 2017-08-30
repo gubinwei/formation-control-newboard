@@ -55,7 +55,7 @@ float PID_calculate2( float T,            //周期（单位：秒）
 										float inte_lim			//integration limit，积分限幅
 										 )	
 {
-	float out,differential;
+	float out;
 	//pid_arg->k_inc_d_norm = LIMIT(pid_arg->k_inc_d_norm,0,1);
 	
 	//pid_val->feedback_d = (-1.0f) *(feedback - pid_val->feedback_old) *safe_div(1.0f,T,0);
