@@ -301,7 +301,6 @@ void PID_Para_Init()
 {
 	Ctrl_Para_Init();
 	h_pid_init();
-
 }
 u8 ParaSavedFlag=0;
 void Para_Init()
@@ -317,6 +316,8 @@ void Para_Init()
 	if (ParaSavedFlag==1)
 	BSP_FLASH_Read(ADDR_FLASH_SECTOR_11,sensor_setup.raw_data, 64);
 	Para_ResetToFactorySetup();  // add by Mr. Lin
+	if (ParaSavedFlag==1)
+	BSP_FLASH_Read(ADDR_FLASH_SECTOR_9,pid_setup.raw_data, 192);
 	
 	Param_SetSettingToFC();
 	
@@ -368,7 +369,7 @@ void Param_SavePID(void)
  memcpy(&pid_setup.groups.ctrl2.roll,&ctrl_2.PID[PIDROLL],sizeof(pid_t));
  memcpy(&pid_setup.groups.ctrl2.pitch,&ctrl_2.PID[PIDPITCH],sizeof(pid_t));
  memcpy(&pid_setup.groups.ctrl2.yaw,&ctrl_2.PID[PIDYAW],sizeof(pid_t));
- Para_WriteSettingToFile();
+//	Para_WriteSettingToFile();
 }
 extern u16 flash_save_en_cnt;
 

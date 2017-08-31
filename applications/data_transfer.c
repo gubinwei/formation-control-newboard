@@ -385,11 +385,13 @@ void ANO_DT_Data_Receive_Anl(u8 *data_buf,u8 num)
 		{
 			Mag_CALIBRATED = 1;
 		}
-		else if (*(data_buf+4)==0X05)
+		else if (*(data_buf+4)==0X05)    // 气压计校准
 		{
+			Param_SavePID();
 			ParaSavedFlag=1;
-			BSP_FLASH_Write(ADDR_FLASH_SECTOR_6,&ParaSavedFlag, 1);
-			BSP_FLASH_Write(ADDR_FLASH_SECTOR_7,sensor_setup.raw_data, 64);
+			BSP_FLASH_Write(ADDR_FLASH_SECTOR_10,&ParaSavedFlag, 1);
+			BSP_FLASH_Write(ADDR_FLASH_SECTOR_11,sensor_setup.raw_data, 64);
+			BSP_FLASH_Read(ADDR_FLASH_SECTOR_9,pid_setup.raw_data, 192);
 		}
 		else if((*(data_buf+4)>=0X021)&&(*(data_buf+4)<=0X26))
 		{
