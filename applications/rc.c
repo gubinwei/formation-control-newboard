@@ -224,7 +224,7 @@ void Fly_Ready(float T,float rc_yaw)
 					//acc_ng_cali = mpu6050.Gyro_CALIBRATE = 2;
 					mpu6050.Acc_CALIBRATE = 1;		
 					mpu6050.Gyro_CALIBRATE = 1;
-					Mag_CALIBRATED = 1;
+				//	Mag_CALIBRATED = 1;
 				}
 			}
 		}

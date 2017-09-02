@@ -277,76 +277,82 @@ void Uart5_Send(unsigned char *DataToSend ,u8 data_num)
 
 }
 
-/******************* (C) COPYRIGHT 2014 ANO TECH *****END OF FILE************/
+/*******´®¿Ú1±äÁ¿*********************/
+u8 Rx_1_Buf[256];	
+u8 Tx1Buffer[256];
+u8 Tx1DMABuffer[256];
+u8 Tx1Counter=0;
+u8 count1=0; 
+/***********************************/
 
 void Usart1_Init(u32 br_num)
-{ USART_InitTypeDef USART_InitStructure;
-	USART_ClockInitTypeDef USART_ClockInitStruct;
+{ 
+ GPIO_InitTypeDef GPIO_InitStructure;
+	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
-	GPIO_InitTypeDef GPIO_InitStructure;
+	DMA_InitTypeDef DMA_InitStructure;
 	
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE); //开启USART2时钟
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA,ENABLE);	
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA,ENABLE); 
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1,ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2,ENABLE);
 	
-	//串口中断优先级
-	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_InitStructure);	
+	
+	GPIO_PinAFConfig(GPIOA,GPIO_PinSource9,GPIO_AF_USART1); 
+	GPIO_PinAFConfig(GPIOA,GPIO_PinSource10,GPIO_AF_USART1); 
+	
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; 
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+	GPIO_Init(GPIOA,&GPIO_InitStructure);
 
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_USART1);
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_USART1);
+	USART_InitStructure.USART_BaudRate = br_num;
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+	USART_InitStructure.USART_StopBits = USART_StopBits_1;
+	USART_InitStructure.USART_Parity = USART_Parity_No;
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+  USART_Init(USART1, &USART_InitStructure); 
 	
-	//配置PD5作为USART2　Tx
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9; 
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
-  GPIO_Init(GPIOA, &GPIO_InitStructure); 
-	//配置PD6作为USART2　Rx
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10; 
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
-  GPIO_Init(GPIOA, &GPIO_InitStructure); 
+  USART_Cmd(USART1, ENABLE);
+	USART_DMACmd(USART1,USART_DMAReq_Tx,ENABLE);
 	
-	//配置USART2
-	//中断被屏蔽了
-	USART_InitStructure.USART_BaudRate = br_num;       //波特率可以通过地面站配置
-	USART_InitStructure.USART_WordLength = USART_WordLength_8b;  //8位数据
-	USART_InitStructure.USART_StopBits = USART_StopBits_1;   //在帧结尾传输1个停止位
-	USART_InitStructure.USART_Parity = USART_Parity_No;    //禁用奇偶校验
-	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None; //硬件流控制失能
-	USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;  //发送、接收使能
-	//配置USART2时钟
-	USART_ClockInitStruct.USART_Clock = USART_Clock_Disable;  //时钟低电平活动
-	USART_ClockInitStruct.USART_CPOL = USART_CPOL_Low;  //SLCK引脚上时钟输出的极性->低电平
-	USART_ClockInitStruct.USART_CPHA = USART_CPHA_2Edge;  //时钟第二个边沿进行数据捕获
-	USART_ClockInitStruct.USART_LastBit = USART_LastBit_Disable; //最后一位数据的时钟脉冲不从SCLK输出
-	
-	USART_Init(USART1, &USART_InitStructure);
-	USART_ClockInit(USART1, &USART_ClockInitStruct);
-
-	//使能USART2接收中断
 	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
-	//使能USART2
-	USART_Cmd(USART1, ENABLE); 
+
+  NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority =1;	
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		
+	NVIC_Init(&NVIC_InitStructure);	
+	
+	DMA_DeInit(DMA2_Stream7);
+	
+	while (DMA_GetCmdStatus(DMA2_Stream7) != DISABLE){}//µÈ´ýDMA¿ÉÅäÖÃ 
+	
+  /* ÅäÖÃ DMA Stream */
+  DMA_InitStructure.DMA_Channel = DMA_Channel_4;  //Í¨µÀÑ¡Ôñ
+  DMA_InitStructure.DMA_PeripheralBaseAddr = (u32)&USART1->DR;//DMAÍâÉèµØÖ·
+  DMA_InitStructure.DMA_Memory0BaseAddr = (u32)Tx1DMABuffer;//DMA ´æ´¢Æ÷0µØÖ·
+  DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;//´æ´¢Æ÷µ½ÍâÉèÄ£Ê½
+  DMA_InitStructure.DMA_BufferSize = 0;//Êý¾Ý´«ÊäÁ¿ 
+  DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;//ÍâÉè·ÇÔöÁ¿Ä£Ê½
+  DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;//´æ´¢Æ÷ÔöÁ¿Ä£Ê½
+  DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;//ÍâÉèÊý¾Ý³¤¶È:8Î»
+  DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;//´æ´¢Æ÷Êý¾Ý³¤¶È:8Î»
+  DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;// Ê¹ÓÃÆÕÍ¨Ä£Ê½ 
+  DMA_InitStructure.DMA_Priority = DMA_Priority_Medium;//ÖÐµÈÓÅÏÈ¼¶
+  DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable;         
+  DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
+  DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;//´æ´¢Æ÷Í»·¢µ¥´Î´«Êä
+  DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;//ÍâÉèÍ»·¢µ¥´Î´«Êä
+  DMA_Init(DMA2_Stream7, &DMA_InitStructure);//³õÊ¼»¯DMA Stream
 
 }
-
-u8 TxBuffer1[256];
-u8 TxCounter1=0;
-u8 count1=0; 
-
-u8 Rx_Buf1[256];	//串口接收缓存
 
 void USART1_IRQHandler(void)
 {
 	u8 com_data;
-		//	LED_Duty();
 	if(USART1->SR & USART_SR_ORE)//ORE中断
 	{
 
@@ -358,21 +364,9 @@ void USART1_IRQHandler(void)
 	{
 		
 		USART_ClearITPendingBit(USART1,USART_IT_RXNE);//清除中断标志
-	
 		com_data = USART1->DR;
 		ANO_DT_Data_Receive_Prepare2(com_data);
 
-	}
-	if( USART_GetITStatus(USART1,USART_IT_TXE ) )
-	{
-		USART1->DR = TxBuffer1[TxCounter1++]; //写DR清除中断标志          
-		if(TxCounter1 == count1)
-		{
-			USART1->CR1 &= ~USART_CR1_TXEIE;		//关闭TXE（发送中断）中断
-		}
-
-
-		//USART_ClearITPendingBit(USART2,USART_IT_TXE);
 	}
 
 
@@ -380,17 +374,30 @@ void USART1_IRQHandler(void)
 }
 void Usart1_Send(unsigned char *DataToSend ,u8 data_num)
 {
-  u8 i;
+   u8 i;
+	static uint16_t num=0;
+	static u8 len=0;
+	
+	DMA_Cmd(DMA2_Stream7, DISABLE);
+	DMA_ClearFlag(DMA2_Stream7,DMA_FLAG_TCIF7);//Çå³ýDMA2_Steam7´«ÊäÍê³É±êÖ¾
+	num = DMA_GetCurrDataCounter(DMA2_Stream7);
+	
 	for(i=0;i<data_num;i++)
 	{
-		TxBuffer1[count1++] = *(DataToSend+i);
+		Tx1Buffer[count1++] = *(DataToSend+i);
 	}
-
-	if(!(USART1->CR1 & USART_CR1_TXEIE))
+	for (i=0;i<num;i++)
 	{
-		USART_ITConfig(USART1, USART_IT_TXE, ENABLE); //打开发送中断
+		Tx1DMABuffer[i]=Tx1Buffer[((u8)(len-num+i))];
 	}
-
+	for (;i<num+data_num;i++)
+	{
+		Tx1DMABuffer[i]=*(DataToSend+i-num);
+	}
+	len=count1;
+	while (DMA_GetCmdStatus(DMA2_Stream7) != DISABLE){}	//È·±£DMA¿ÉÒÔ±»ÉèÖÃ  
+	DMA2_Stream7->NDTR = (uint16_t)(num+data_num);          //Êý¾Ý´«ÊäÁ¿  
+	DMA_Cmd(DMA2_Stream7, ENABLE);      
 }
 
 

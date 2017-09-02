@@ -50,7 +50,8 @@ u8 All_Init()
 	//Usart2_Init(256000);
 
 	Usart1_Init(115200);
-		Usart2_Init(115200);
+	
+	Usart2_Init(460800);
 	//TIM_INIT();
 	
 	Para_Init();							//参数初始化

@@ -152,18 +152,19 @@ void ANO_DT_Data_Exchange(void)
 	{
 		f.send_status = 0;
 		ANO_DT_Send_Status(Roll,Pitch,Yaw,0,0,fly_ready);	
+		ANO_DT_Send_Status2(Roll,Pitch,Yaw,0,NS,fly_ready,(short)ultra.height);	
 	}	
 /////////////////////////////////////////////////////////////////////////////////////
 	else if(f.send_speed)
 	{
 		f.send_speed = 0;
-		ANO_DT_Send_Speed(april_vx,april_vy,100.0);
+//		ANO_DT_Send_Speed(april_vx,april_vy,100.0);
 	}
 /////////////////////////////////////////////////////////////////////////////////////
 	else if(f.send_user)
 	{
 		f.send_user = 0;
-		ANO_DT_Send_User();
+//		ANO_DT_Send_User();
 	}
 /////////////////////////////////////////////////////////////////////////////////////
 	else if(f.send_senser)
@@ -567,6 +568,49 @@ void ANO_DT_Data_Receive_Anl(u8 *data_buf,u8 num)
 			checksum_to_send = sum;
 		}
 	}
+}
+
+void ANO_DT_Send_Status2(float angle_rol, float angle_pit, float angle_yaw, s32 alt, u8 fly_model, u8 armed,short height)
+{
+	u8 _cnt=0;
+	vs16 _temp;
+	vs32 _temp2 = alt;
+	
+	data_to_send[_cnt++]=0xAA;
+	data_to_send[_cnt++]=0xAA;
+	data_to_send[_cnt++]=0x01;
+	data_to_send[_cnt++]=0;
+	
+	_temp = (int)(angle_rol*100);
+	data_to_send[_cnt++]=BYTE1(_temp);
+	data_to_send[_cnt++]=BYTE0(_temp);
+	_temp = (int)(angle_pit*100);
+	data_to_send[_cnt++]=BYTE1(_temp);
+	data_to_send[_cnt++]=BYTE0(_temp);
+	_temp = (int)(angle_yaw*100);
+	data_to_send[_cnt++]=BYTE1(_temp);
+	data_to_send[_cnt++]=BYTE0(_temp);
+	
+	data_to_send[_cnt++]=BYTE3(_temp2);
+	data_to_send[_cnt++]=BYTE2(_temp2);
+	data_to_send[_cnt++]=BYTE1(_temp2);
+	data_to_send[_cnt++]=BYTE0(_temp2);
+	
+	data_to_send[_cnt++] = fly_model;
+	
+	data_to_send[_cnt++] = armed;
+	
+	data_to_send[_cnt++]=BYTE1(height);
+	data_to_send[_cnt++]=BYTE0(height);
+	
+	data_to_send[3] = _cnt-4;
+	
+	u8 sum = 0;
+	for(u8 i=0;i<_cnt;i++)
+		sum += data_to_send[i];
+	data_to_send[_cnt++]=sum;
+	
+	Usart1_Send(data_to_send, _cnt);
 }
 
 void ANO_DT_Send_Version(u8 hardware_type, u16 hardware_ver,u16 software_ver,u16 protocol_ver,u16 bootloader_ver)

@@ -47,6 +47,6 @@ void ANO_DT_Send_PID(u8 group,float p1_p,float p1_i,float p1_d,float p2_p,float 
 void ANO_DT_Send_User(void);
 void ANO_DT_Send_Speed(float,float,float);
 void ANO_DT_Send_Location(u8 state,u8 sat_num,s32 lon,s32 lat,float back_home_angle);
-
+void ANO_DT_Send_Status2(float angle_rol, float angle_pit, float angle_yaw, s32 alt, u8 fly_model, u8 armed,short height);
 #endif
 
