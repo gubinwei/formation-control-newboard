@@ -43,7 +43,7 @@ void CTRL_2(float T)//0.005S
 	}
 	else
 	{
-		except_A.z += Yaw ;
+		except_A.z += 1 *3.14 *T *( Yaw - except_A.z );
 	}
 	except_A.z = To_180_degrees(except_A.z);
 //==============================================================================

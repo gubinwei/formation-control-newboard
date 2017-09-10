@@ -68,7 +68,7 @@ float thr_set,thr_pid_out,thr_out,thr_take_off,tilted_fix;
 float en_old;
 u8 ex_i_en_f,ex_i_en;
 
-float exp_height_l=400.0f; //expect height is 400mm;
+float exp_height_l=800.0f; //expect height is 400mm;
 
 float Height_Ctrl(float T,float thr,u8 ready,float en)
 {
